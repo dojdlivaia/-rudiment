@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas font-sans text-ink;
+  }
+  h1, h2, h3 {
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    @apply bg-clay/20 text-ink;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-card bg-surface shadow-soft;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-clay px-6 py-3 font-medium text-white shadow-soft transition-all duration-250 ease-rudiment hover:bg-clay-dark hover:shadow-lift active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill border border-sand-200 bg-surface px-6 py-3 font-medium text-ink transition-all duration-250 ease-rudiment hover:border-clay/40 hover:text-clay-dark active:scale-[0.98];
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-pill px-3 py-1 text-xs font-medium;
+  }
+  .prose-scenario {
+    @apply text-[17px] leading-relaxed text-ink-soft;
+  }
+  .prose-scenario strong {
+    @apply font-semibold text-ink;
+  }
+  /* Слайдер уверенности */
+  .confidence-range {
+    @apply h-2 w-full cursor-pointer appearance-none rounded-pill bg-sand-100;
+  }
+  .confidence-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    @apply h-6 w-6 rounded-full border-2 border-clay bg-surface shadow-soft transition-transform duration-150 ease-rudiment;
+  }
+  .confidence-range::-webkit-slider-thumb:hover {
+    @apply scale-110;
+  }
+  .confidence-range::-moz-range-thumb {
+    @apply h-6 w-6 rounded-full border-2 border-clay bg-surface shadow-soft;
+  }
+}
+
+@layer utilities {
+  .duration-150 { transition-duration: 150ms; }
+  .duration-250 { transition-duration: 250ms; }
+  .duration-500 { transition-duration: 500ms; }
+}
