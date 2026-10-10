@@ -72,7 +72,7 @@ export default function CalibrationCurve({ points }: { points: CalibPoint[] }) {
                 background: "#FFFFFF", border: "1px solid #DFD3BC", borderRadius: 12,
                 fontFamily: "var(--font-inter)", fontSize: 13, boxShadow: "0 4px 16px rgba(31,27,22,0.08)",
               }}
-              formatter={(v: number, name: string) => [`${v}%`, name === "actual" ? "Факт" : "Идеал"]}
+              formatter={(v, name) => [`${Number(v ?? 0)}%`, String(name) === "actual" ? "Факт" : "Идеал"]}
               labelFormatter={(l) => `Уверенность ${l}%`}
             />
             {/* Диагональ идеала */}

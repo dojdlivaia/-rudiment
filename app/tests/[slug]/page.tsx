@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import { MDXRemote, type MDXRemoteSerializeResult } from "next-mdx-remote/serialize";
 import { loadScenario, scenarioSlugs } from "@/lib/scenario-engine";
 import ScenarioClient from "./ScenarioClient";
+import ScenarioBody from "@/components/ScenarioBody";
 
 /**
  * /tests/[slug] — серверная часть: грузит MDX, валидирует через Zod (в движке),
- * сериализует тело сценария и отдаёт клиентскому раннеру.
+ * рендерит тело сценария на сервере (static-safe) и отдаёт клиентскому раннеру.
  */
 
 export function generateStaticParams() {
@@ -14,7 +14,7 @@ export function generateStaticParams() {
 
 export const metadata = { title: "Сценарий · Рудимент" };
 
-export default async function TestPage({ params }: { params: { slug: string } }) {
+export default function TestPage({ params }: { params: { slug: string } }) {
   let scenario;
   try {
     scenario = loadScenario(params.slug);
@@ -22,12 +22,13 @@ export default async function TestPage({ params }: { params: { slug: string } })
     notFound();
   }
 
-  const mdx = (await MDXRemote.serialize({
-    source: scenario.body,
-  })) as MDXRemoteSerializeResult;
-
   // Фронтматтер без тела — прокидываем в клиент типизированно
   const { body: _body, ...front } = scenario;
 
-  return <ScenarioClient scenario={front} mdxSource={mdx} />;
+  return (
+    <ScenarioClient
+      scenario={front}
+      intro={<ScenarioBody scenario={scenario} />}
+    />
+  );
 }
