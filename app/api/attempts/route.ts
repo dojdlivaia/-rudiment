@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServerSupabase, supabaseEnabled } from "@/lib/supabase/server";
 import { scoreScenario, answerSchema, type AnswerInput } from "@/lib/metrics";
 import { loadScenario } from "@/lib/scenario-engine";
@@ -12,6 +13,10 @@ import { loadScenario } from "@/lib/scenario-engine";
  * Сервер пересчитывает метрики по Zod-схеме сценария (клиенту не доверяем).
  * Без Supabase — пишет в data/demo-attempts.json (демо-режим MVP).
  */
+
+/** Типизация вставок без сгенерированных типов базы (sb.from(...) generic = never без Database) */
+type AttemptInsert = Record<string, unknown>;
+type AnswerInsert = Record<string, unknown>;
 
 const bodySchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
@@ -45,19 +50,33 @@ export async function POST(req: NextRequest) {
     } = await sb.auth.getUser(req.headers.get("authorization")?.replace("Bearer ", "") ?? undefined);
 
     if (user) {
-      const { data: attempt, error } = await sb.from("attempts").insert({
-        user_id: user.id,
-        scenario_slug: scenario.slug,
-        bias: scenario.bias,
-        susceptibility: result.susceptibility,
-        mean_brier: result.meanBrier,
-        overconfidence: result.overconfidence,
-        finished_at: new Date().toISOString(),
-      }).select("id").single();
+      // Типизация через unknown: без сгенерированных типов Database insert-объекты
+      // выводятся как never[] — приводим таблицы к «свободному» клиенту.
+      const attemptsTable = sb.from("attempts") as unknown as {
+        insert: (values: AttemptInsert | AttemptInsert[]) => {
+          select: (cols: string) => { single: () => Promise<{ data: { id: string } | null; error: unknown }> };
+        };
+      };
+      const answersTable = sb.from("answers") as unknown as {
+        insert: (values: AnswerInsert | AnswerInsert[]) => Promise<{ data: unknown; error: unknown }>;
+      };
+
+      const { data: attempt, error } = await attemptsTable
+        .insert({
+          user_id: user.id,
+          scenario_slug: scenario.slug,
+          bias: scenario.bias,
+          susceptibility: result.susceptibility,
+          mean_brier: result.meanBrier,
+          overconfidence: result.overconfidence,
+          finished_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
 
       if (!error && attempt) {
-        await sb.from("answers").insert(
-          result.perQuestion.map((r, i) => {
+        await answersTable.insert(
+          result.perQuestion.map((r) => {
             const a = parsed.answers.find((x) => x.questionId === r.questionId)!;
             return {
               attempt_id: attempt.id,

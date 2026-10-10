@@ -7,6 +7,7 @@ import CalibrationCurve from "@/components/charts/CalibrationCurve";
 import Raptor, { RaptorSpeech } from "@/components/mascot/Raptor";
 import { readAttempts, type StoredAttempt } from "@/lib/demo-store";
 import { calibrationCurve, brierScore, overallOverconfidence } from "@/lib/metrics";
+import { withBase } from "@/lib/motion";
 
 /**
  * /calibration — экран кривой калибровки: Brier score, overconfidence, curve.
@@ -38,7 +39,7 @@ export default function CalibrationPage() {
     async function load() {
       setAttempts(readAttempts());
       try {
-        const res = await fetch("/api/profile");
+        const res = await fetch(withBase("/api/profile"));
         const json: ProfilePayload = await res.json();
         setProfile(json);
         // Точки калибровки уже посчитаны на сервере — восстанавливаем плоские ответы

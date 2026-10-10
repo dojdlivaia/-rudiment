@@ -1,26 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { MDXRemote, type MDXRemoteSerializeResult } from "next-mdx-remote";
 import AppNav from "@/components/AppNav";
 import ScenarioRunner from "@/components/ScenarioRunner";
 import Debrief from "@/components/Debrief";
 import Raptor from "@/components/mascot/Raptor";
-import { fadeUp } from "@/lib/motion";
+import { fadeUp, withBase } from "@/lib/motion";
 import type { ScenarioFrontmatter, Scenario } from "@/lib/scenario-schema";
 import { scoreScenario, type AnswerInput, type ScenarioResult } from "@/lib/metrics";
 
 type Stage = "intro" | "run" | "saving" | "debrief";
 
-/** Клиентская оболочка сценария: интро (MDX) → раннер → сохранение → разбор. */
+/** Клиентская оболочка сценария: интро (серверный MDX-body) → раннер → сохранение → разбор. */
 export default function ScenarioClient({
   scenario,
-  mdxSource,
+  intro,
 }: {
   scenario: Omit<Scenario, "body">;
-  mdxSource: MDXRemoteSerializeResult;
+  intro: ReactNode;
 }) {
   const [stage, setStage] = useState<Stage>("intro");
   const [result, setResult] = useState<ScenarioResult | null>(null);
@@ -29,7 +28,7 @@ export default function ScenarioClient({
     setStage("saving");
     const local = scoreScenario(scenario.questions, answers);
     try {
-      await fetch("/api/attempts", {
+      await fetch(withBase("/api/attempts"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: scenario.slug, answers }),
@@ -53,7 +52,7 @@ export default function ScenarioClient({
               <p className="mt-3 text-lg text-ink-soft">{scenario.subtitle}</p>
 
               <article className="prose-scenario mt-10 space-y-4">
-                <MDXRemote {...mdxSource} />
+                {intro}
               </article>
 
               <div className="mt-10 flex items-center gap-4">

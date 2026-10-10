@@ -19,12 +19,21 @@ export async function GET(req: NextRequest) {
     } = await sb.auth.getUser(req.headers.get("authorization")?.replace("Bearer ", "") ?? undefined);
 
     if (user) {
-      const [{ data: attempts }, { data: answers }] = await Promise.all([
-        sb.from("attempts").select("bias, susceptibility, mean_brier, overconfidence, finished_at").eq("user_id", user.id),
-        sb.from("answers").select("confidence, correct").eq("user_id", user.id),
-      ]);
+      const attemptsRes = await sb
+        .from("attempts")
+        .select("bias, susceptibility, mean_brier, overconfidence, finished_at")
+        .eq("user_id", user.id);
+      const answersRes = await sb
+        .from("answers")
+        .select("confidence, correct")
+        .eq("user_id", user.id);
 
-      return NextResponse.json(buildProfile(attempts ?? [], answers ?? []));
+      return NextResponse.json(
+        buildProfile(
+          (attemptsRes.data ?? []) as any[],
+          (answersRes.data ?? []) as any[],
+        ),
+      );
     }
   }
 

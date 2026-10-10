@@ -38,3 +38,9 @@ export const scaleIn = {
   initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1, transition: transition.base },
 };
+
+/** Префикс пути для GitHub Pages (NEXT_PUBLIC_BASE_PATH). Пусто на Vercel/локально. */
+export function withBase(path: string): string {
+  const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+  return base ? `${base}${path}` : path;
+}

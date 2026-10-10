@@ -8,10 +8,13 @@ const inter = Inter({
   display: "swap",
 });
 
+// Fraunces не поддерживает кириллицу в next/font — для заголовков на русском
+// используем системный serif-фолбэк (см. tailwind.config fontFamily.fraunces).
 const fraunces = Fraunces({
-  subsets: ["latin", "cyrillic"],
+  subsets: ["latin"],
   variable: "--font-fraunces",
   display: "swap",
+  fallback: ["Georgia", "Times New Roman", "serif"],
 });
 
 const jetbrains = JetBrains_Mono({
